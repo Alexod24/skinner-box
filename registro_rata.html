@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cámara de Skinner • Registro Conductual Operante</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fuentes Tipográficas: Inter (UI) y JetBrains Mono (Métricas/Datos) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js CDN v4+ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <!-- html2canvas CDN v1.4+ -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <!-- Estilos Personalizados Separados -->
+  <link rel="stylesheet" href="styles.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'SFMono-Regular', 'Menlo', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-neutral-100 text-neutral-800 font-sans min-h-screen flex flex-col antialiased selection:bg-neutral-800 selection:text-white lab-grid">
+
+  <!-- BARRA DE INSTRUMENTAL SUPERIOR -->
+  <header class="bg-white border-b border-neutral-200 sticky top-0 z-30 px-4 sm:px-8 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      
+      <!-- Logo Técnico -->
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-neutral-900 text-white flex items-center justify-center font-mono font-bold text-xs tracking-widest shadow-sm">
+          SK
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-semibold text-sm tracking-tight text-neutral-900 leading-none">OPERANT-BOX</h1>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200">v2.4</span>
+          </div>
+          <p class="text-[11px] text-neutral-500 font-mono mt-0.5">ESTACIÓN DE REGISTRO CONDUCTUAL</p>
+        </div>
+      </div>
+
+      <!-- Estado del Sistema -->
+      <div class="flex items-center gap-3">
+        <div id="sessionStatusPill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono border border-neutral-200 bg-neutral-50 text-neutral-600">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="sessionStatusText">SISTEMA LISTO</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- CONTENEDOR CENTRAL -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+    <!-- ========================================================= -->
+    <!-- PANTALLA 1: CONFIGURACIÓN Y METADATOS DE LA SESIÓN       -->
+    <!-- ========================================================= -->
+    <section id="screen1" class="w-full max-w-xl mx-auto bg-white rounded-lg border border-neutral-300 shadow-sm transition-all">
+      
+      <!-- Ficha de Registro -->
+      <div class="px-6 py-5 border-b border-neutral-200">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono uppercase tracking-wider text-neutral-500 font-semibold">Protocolo de Registro</span>
+          <span class="text-[11px] font-mono text-neutral-400">EXP-COND-01</span>
+        </div>
+        <h2 class="text-xl font-bold text-neutral-900 mt-1">Sesión en Cámara Operante</h2>
+        <p class="text-xs text-neutral-500 mt-1">
+          Registro acumulativo y tasa de emisión de respuestas operantes (Palanca / Bebedero) en sujeto experimental murino.
+        </p>
+      </div>
+
+      <!-- Formulario -->
+      <form id="setupForm" class="p-6 space-y-5">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- ID Sujeto -->
+          <div>
+            <label for="inputSubject" class="block text-xs font-mono font-medium text-neutral-700 mb-1.5">
+              ID DEL SUJETO <span class="text-red-600">*</span>
+            </label>
+            <input type="text" id="inputSubject" required placeholder="Ej. R-04"
+              class="w-full px-3 py-2 text-sm font-mono rounded border border-neutral-300 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-none transition bg-neutral-50/50">
+          </div>
+
+          <!-- Observador -->
+          <div>
+            <label for="inputObserver" class="block text-xs font-mono font-medium text-neutral-700 mb-1.5">
+              OBSERVADOR <span class="text-red-600">*</span>
+            </label>
+            <input type="text" id="inputObserver" required placeholder="Iniciales / Nombre"
+              class="w-full px-3 py-2 text-sm font-mono rounded border border-neutral-300 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-none transition bg-neutral-50/50">
+          </div>
+
+          <!-- Fecha / Hora -->
+          <div>
+            <label for="inputDate" class="block text-xs font-mono font-medium text-neutral-700 mb-1.5">
+              FECHA Y HORA <span class="text-red-600">*</span>
+            </label>
+            <input type="datetime-local" id="inputDate" required
+              class="w-full px-3 py-2 text-xs font-mono rounded border border-neutral-300 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-none transition bg-neutral-50/50">
+          </div>
+
+          <!-- Duración -->
+          <div>
+            <label for="inputDuration" class="block text-xs font-mono font-medium text-neutral-700 mb-1.5">
+              DURACIÓN (MINUTOS) <span class="text-red-600">*</span>
+            </label>
+            <input type="number" id="inputDuration" min="1" max="180" value="15" required
+              class="w-full px-3 py-2 text-sm font-mono rounded border border-neutral-300 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-none transition bg-neutral-50/50">
+          </div>
+        </div>
+
+        <!-- Instrucciones -->
+        <div class="rounded border border-neutral-200 bg-neutral-50 p-3.5 space-y-1.5 text-xs text-neutral-600">
+          <div class="font-mono text-[11px] font-semibold text-neutral-800 uppercase tracking-wide">
+            Criterios de Observación
+          </div>
+          <p>
+            • Presione <strong class="font-mono text-neutral-900">[+1]</strong> cada vez que la conducta cumpla con el criterio topográfico formal.
+          </p>
+          <p>
+            • En caso de falso positivo o registro reflejo accidental, use de inmediato <strong class="font-mono text-neutral-900">[-1]</strong> para corregir.
+          </p>
+          <p class="font-mono text-[11px] text-neutral-500 pt-1 border-t border-neutral-200">
+            Atajos de teclado en sesión: <kbd class="px-1 py-0.5 bg-white border border-neutral-300 rounded font-mono">P</kbd> Palanca, <kbd class="px-1 py-0.5 bg-white border border-neutral-300 rounded font-mono">A</kbd> Agua, <kbd class="px-1 py-0.5 bg-white border border-neutral-300 rounded font-mono">Espacio</kbd> Pausa.
+          </p>
+        </div>
+
+        <!-- Botón de Inicio -->
+        <button type="submit"
+          class="w-full py-3 px-4 rounded bg-neutral-900 hover:bg-neutral-800 text-white font-mono text-xs font-semibold tracking-wider uppercase transition shadow-sm btn-press flex items-center justify-center gap-2">
+          <span>Iniciar Registro de Sesión</span>
+          <span>&rarr;</span>
+        </button>
+
+      </form>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- PANTALLA 2: CONSOLA DE REGISTRO EN TIEMPO REAL           -->
+    <!-- ========================================================= -->
+    <section id="screen2" class="hidden w-full space-y-4">
+      
+      <!-- Panel de Control y Cronometría -->
+      <div class="bg-white rounded-lg border border-neutral-300 p-4 shadow-sm">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          
+          <!-- Metadatos de la sesión activa -->
+          <div class="flex items-center gap-4 w-full md:w-auto border-b md:border-b-0 pb-3 md:pb-0 border-neutral-100">
+            <div>
+              <span class="text-[10px] font-mono text-neutral-400 uppercase tracking-wider block">Sujeto</span>
+              <span id="activeSubjectDisplay" class="font-mono font-bold text-neutral-900 text-base">R-04</span>
+            </div>
+            <div class="h-6 w-px bg-neutral-200"></div>
+            <div>
+              <span class="text-[10px] font-mono text-neutral-400 uppercase tracking-wider block">Observador</span>
+              <span id="activeObserverDisplay" class="font-mono text-xs text-neutral-700">OBS-01</span>
+            </div>
+          </div>
+
+          <!-- Cronómetros con tipografía mono técnica -->
+          <div class="flex items-center gap-6">
+            <div class="text-center">
+              <span class="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block">Transcurrido</span>
+              <span id="elapsedDisplay" class="font-mono text-3xl font-bold text-neutral-900 tracking-tight">00:00</span>
+            </div>
+            <div class="h-8 w-px bg-neutral-200"></div>
+            <div class="text-center">
+              <span class="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block">Tiempo Restante</span>
+              <span id="remainingDisplay" class="font-mono text-3xl font-bold text-neutral-600 tracking-tight">15:00</span>
+            </div>
+          </div>
+
+          <!-- Botón de Pausa / Reanudar -->
+          <button id="btnPauseResume" type="button"
+            class="w-full md:w-auto px-4 py-2 rounded border border-neutral-300 bg-neutral-50 hover:bg-neutral-100 text-neutral-800 font-mono text-xs font-semibold uppercase tracking-wider transition btn-press flex items-center justify-center gap-2">
+            <span id="pauseDot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span id="btnPauseResumeText">Pausar</span>
+          </button>
+
+        </div>
+
+        <!-- Banner de tiempo cumplido -->
+        <div id="timeAlert" class="hidden mt-3 p-2.5 bg-neutral-900 text-neutral-100 rounded text-xs font-mono flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400 font-bold">&#9679;</span>
+            <span>TIEMPO PROGRAMADO CUMPLIDO. El cronómetro continúa registrando hasta que presione finalizar.</span>
+          </div>
+          <button onclick="document.getElementById('timeAlert').classList.add('hidden')" class="text-neutral-400 hover:text-white font-mono text-xs ml-3 underline">Descartar</button>
+        </div>
+      </div>
+
+      <!-- Consolas de Registro Independientes -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- CONDUCTA A: Presionar Palanca -->
+        <div class="bg-white rounded-lg border-2 border-neutral-300 p-5 flex flex-col justify-between relative shadow-sm">
+          
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-neutral-200">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-amber-600 inline-block"></span>
+                <span class="font-mono text-xs font-bold text-neutral-900 tracking-wider">CANAL 01 &bull; OPERANTE</span>
+              </div>
+              <div class="font-mono text-xs text-neutral-500">
+                Tasa: <span id="ratePalancaLive" class="font-bold text-neutral-900">0.0</span> RPM
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <h3 class="font-bold text-lg text-neutral-900">Presión de Palanca</h3>
+              <p class="text-xs text-neutral-500">Respuesta mecánica de descenso sobre barra operativa.</p>
+            </div>
+          </div>
+
+          <!-- Display Numérico Gigante de Instrumento -->
+          <div class="my-8 text-center unselectable">
+            <div id="countPalanca" class="counter-display font-mono text-7xl sm:text-8xl font-bold tracking-tight text-neutral-900">
+              0
+            </div>
+            <div class="text-[11px] font-mono text-neutral-400 uppercase tracking-widest mt-1">
+              Eventos Registrados
+            </div>
+          </div>
+
+          <!-- Controles Operativos -->
+          <div class="space-y-2">
+            <button id="btnPalancaPlus" type="button"
+              class="w-full py-5 bg-neutral-900 hover:bg-neutral-800 text-white rounded font-mono font-bold text-2xl tracking-wide uppercase transition shadow btn-press unselectable flex items-center justify-center gap-2">
+              <span>+1</span>
+              <span class="text-xs font-normal text-neutral-400 tracking-normal">(Tecla P)</span>
+            </button>
+
+            <button id="btnPalancaMinus" type="button"
+              class="w-full py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded font-mono text-xs font-semibold uppercase tracking-wider transition unselectable">
+              Deshacer Marcación (-1)
+            </button>
+          </div>
+
+        </div>
+
+        <!-- CONDUCTA B: Beber Agua -->
+        <div class="bg-white rounded-lg border-2 border-neutral-300 p-5 flex flex-col justify-between relative shadow-sm">
+          
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-neutral-200">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-sky-600 inline-block"></span>
+                <span class="font-mono text-xs font-bold text-neutral-900 tracking-wider">CANAL 02 &bull; CONSUMATORIA</span>
+              </div>
+              <div class="font-mono text-xs text-neutral-500">
+                Tasa: <span id="rateAguaLive" class="font-bold text-neutral-900">0.0</span> RPM
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <h3 class="font-bold text-lg text-neutral-900">Beber Agua</h3>
+              <p class="text-xs text-neutral-500">Contacto con sensor de bebedero o lengüetazo.</p>
+            </div>
+          </div>
+
+          <!-- Display Numérico Gigante de Instrumento -->
+          <div class="my-8 text-center unselectable">
+            <div id="countAgua" class="counter-display font-mono text-7xl sm:text-8xl font-bold tracking-tight text-neutral-900">
+              0
+            </div>
+            <div class="text-[11px] font-mono text-neutral-400 uppercase tracking-widest mt-1">
+              Eventos Registrados
+            </div>
+          </div>
+
+          <!-- Controles Operativos -->
+          <div class="space-y-2">
+            <button id="btnAguaPlus" type="button"
+              class="w-full py-5 bg-neutral-900 hover:bg-neutral-800 text-white rounded font-mono font-bold text-2xl tracking-wide uppercase transition shadow btn-press unselectable flex items-center justify-center gap-2">
+              <span>+1</span>
+              <span class="text-xs font-normal text-neutral-400 tracking-normal">(Tecla A)</span>
+            </button>
+
+            <button id="btnAguaMinus" type="button"
+              class="w-full py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded font-mono text-xs font-semibold uppercase tracking-wider transition unselectable">
+              Deshacer Marcación (-1)
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Barra de Cierre / Reinicio -->
+      <div class="bg-white rounded-lg border border-neutral-300 p-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+        <button id="btnResetCounters" type="button"
+          class="w-full sm:w-auto px-4 py-2 border border-neutral-300 hover:border-neutral-400 rounded text-neutral-600 hover:text-neutral-900 font-mono text-xs uppercase tracking-wider transition">
+          Limpiar Sesión
+        </button>
+
+        <button id="btnEndSession" type="button"
+          class="w-full sm:w-auto px-6 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm btn-press">
+          Finalizar y Procesar Gráficos &rarr;
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- PANTALLA 3: INFORME TÉCNICO Y EXPORTACIÓN               -->
+    <!-- ========================================================= -->
+    <section id="screen3" class="hidden w-full space-y-4">
+      
+      <!-- CONTENEDOR TÉCNICO EXPORTABLE A PNG -->
+      <div id="reportExportContainer" class="bg-white rounded-lg border border-neutral-300 p-6 sm:p-8 space-y-6 shadow-sm">
+        
+        <!-- Membrete de Laboratorio -->
+        <div class="border-b-2 border-neutral-900 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+          <div>
+            <div class="font-mono text-xs uppercase tracking-widest text-neutral-500">Laboratorio de Análisis Conductual</div>
+            <h2 class="text-2xl font-bold text-neutral-900 tracking-tight">Reporte de Sesión Operante</h2>
+          </div>
+          <div class="font-mono text-xs text-neutral-500 text-left sm:text-right">
+            <div>FOLIO: <span id="reportFolio" class="font-semibold text-neutral-800">--</span></div>
+            <div>EMISIÓN: <span id="reportGenDate" class="text-neutral-700">--</span></div>
+          </div>
+        </div>
+
+        <!-- Ficha de Metadatos Tipo Tabla Científica -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-neutral-50 border border-neutral-200 rounded p-4 font-mono text-xs">
+          <div>
+            <span class="text-neutral-400 block text-[10px] uppercase">Sujeto</span>
+            <span id="resSubject" class="font-bold text-neutral-900 text-sm">--</span>
+          </div>
+          <div>
+            <span class="text-neutral-400 block text-[10px] uppercase">Observador</span>
+            <span id="resObserver" class="font-bold text-neutral-900 text-sm">--</span>
+          </div>
+          <div>
+            <span class="text-neutral-400 block text-[10px] uppercase">Fecha de Sesión</span>
+            <span id="resDate" class="font-medium text-neutral-800 text-xs">--</span>
+          </div>
+          <div>
+            <span class="text-neutral-400 block text-[10px] uppercase">Duración Observada</span>
+            <span id="resDuration" class="font-bold text-neutral-900 text-sm">--</span>
+          </div>
+        </div>
+
+        <!-- Métricas Cuantitativas Resumidas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <div class="border border-neutral-300 rounded p-4 bg-white">
+            <div class="flex items-center justify-between font-mono text-xs text-neutral-500 mb-1">
+              <span class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
+                CANAL 1: PRESIÓN DE PALANCA
+              </span>
+              <span>OPERANTE</span>
+            </div>
+            <div class="flex items-baseline gap-3 my-2">
+              <span id="resTotalPalanca" class="font-mono text-4xl font-bold text-neutral-900">0</span>
+              <span class="text-xs font-mono text-neutral-500">respuestas totales</span>
+            </div>
+            <div class="text-xs font-mono text-neutral-600 pt-2 border-t border-neutral-100 flex justify-between">
+              <span>Tasa media:</span>
+              <span class="font-bold text-neutral-900"><span id="resRpmPalanca">0.00</span> RPM</span>
+            </div>
+          </div>
+
+          <div class="border border-neutral-300 rounded p-4 bg-white">
+            <div class="flex items-center justify-between font-mono text-xs text-neutral-500 mb-1">
+              <span class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+                CANAL 2: BEBER AGUA
+              </span>
+              <span>CONSUMATORIA</span>
+            </div>
+            <div class="flex items-baseline gap-3 my-2">
+              <span id="resTotalAgua" class="font-mono text-4xl font-bold text-neutral-900">0</span>
+              <span class="text-xs font-mono text-neutral-500">respuestas totales</span>
+            </div>
+            <div class="text-xs font-mono text-neutral-600 pt-2 border-t border-neutral-100 flex justify-between">
+              <span>Tasa media:</span>
+              <span class="font-bold text-neutral-900"><span id="resRpmAgua">0.00</span> RPM</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Gráficos Científicos -->
+        <div class="space-y-6 pt-2">
+          
+          <!-- Gráfico 1: Barras -->
+          <div class="border border-neutral-200 rounded p-4 bg-white">
+            <div class="font-mono text-xs font-bold text-neutral-800 uppercase tracking-wider mb-2">
+              FIGURA 1. Frecuencia Absoluta por Modalidad Conductual
+            </div>
+            <div class="relative w-full h-56 sm:h-64">
+              <canvas id="barChartCanvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Gráfico 2: Registro de Skinner -->
+          <div class="border border-neutral-200 rounded p-4 bg-white">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+              <div class="font-mono text-xs font-bold text-neutral-800 uppercase tracking-wider">
+                FIGURA 2. Registro Acumulativo de Respuestas (Trazador de Skinner)
+              </div>
+              <span class="font-mono text-[10px] text-neutral-500">Pendiente = Tasa instantánea de respuesta</span>
+            </div>
+            <div class="relative w-full h-80 sm:h-96">
+              <canvas id="lineChartCanvas"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Pie del Informe -->
+        <div class="pt-4 border-t border-neutral-200 flex items-center justify-between font-mono text-[10px] text-neutral-400">
+          <span>SISTEMA EXPERIMENTAL DE CONDICIONAMIENTO OPERANTE</span>
+          <span>DOCUMENTO VERIFICADO</span>
+        </div>
+
+      </div>
+
+      <!-- Acciones de Descarga y Retorno -->
+      <div class="bg-white rounded-lg border border-neutral-300 p-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+        <button id="btnNewSession" type="button"
+          class="w-full sm:w-auto px-4 py-2 border border-neutral-300 hover:border-neutral-400 rounded text-neutral-700 font-mono text-xs uppercase tracking-wider transition">
+          &larr; Iniciar Nueva Sesión
+        </button>
+
+        <button id="btnDownloadPng" type="button"
+          class="w-full sm:w-auto px-6 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm btn-press flex items-center justify-center gap-2">
+          <span id="downloadBtnText">Descargar Reporte en PNG (2x HD)</span>
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- PIE DE PÁGINA DISCRETO -->
+  <footer class="mt-auto py-2.5 px-4 text-center font-mono text-[11px] text-neutral-400 border-t border-neutral-200/60 bg-white/50">
+    Skinner Box Analysis Unit &bull; Ejecución Local Autocontenida (Offline)
+  </footer>
+
+  <!-- Script Modular Separado -->
+  <script src="app.js"></script>
+</body>
+</html>
